@@ -102,6 +102,4 @@ extern void pinSetAFR(uint8_t pin, uint8_t af);
 extern void print_gpio_regs(const char *name, GPIO_TypeDef *port);
 extern void print_all_gpio_regs();
 
-
-
 #endif
