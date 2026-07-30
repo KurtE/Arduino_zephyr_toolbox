@@ -91,7 +91,7 @@ port->BSRR = (1 << port_pin);
 Will set that pin to the on state.
 
 Map pin number or pin name to the underlying Zephyr GPIO Port object and optionally pin number on port:
-````
+```
 extern const struct device *mapPinToZephyrGPIODevice(uint8_t pin, uint8_t *port_pin = nullptr);
 extern const struct device *mapPinNameToZephyrGPIODevice(PinName pin_name, uint8_t *port_pin = nullptr);
 ```
