@@ -90,6 +90,22 @@ port->BSRR = (1 << port_pin);
 ```
 Will set that pin to the on state.
 
+Map pin number or pin name to the underlying Zephyr GPIO Port object and optionally pin number on port:
+````
+extern const struct device *mapPinToZephyrGPIODevice(uint8_t pin, uint8_t *port_pin = nullptr);
+extern const struct device *mapPinNameToZephyrGPIODevice(PinName pin_name, uint8_t *port_pin = nullptr);
+```
+Which allows you to do things like:
+```
+const struct device *led_dev; 
+uint8_t led_dev_pin;
+...
+  led_dev = mapPinToZephyrGPIODevice(LED_BUILTIN, &led_dev_pin); 
+...
+  gpio_pin_toggle(led_dev, led_dev_pin);
+```
+
+
 The function: 
 ```
 extern const char *pinNameToStr(PinName pin_name);
@@ -103,9 +119,13 @@ for the actual name.
 
 ### Set usage mode of Pins using PinNames
 
-To set up a pin to be in GPIO modes like: INPUT, INPUT_PULLUP, INPUT_PULLDOWN, OUTPUT
+To set up a pin to be in GPIO modes like: INPUT, INPUT_PULLUP, INPUT_PULLDOWN, OUTPUT.
+By default, it will check to see if the PinName maps to an existing GPIO pin and
+then call the standard Arduino pinMode(pin, PinMode).  There is an optional parameter
+that if set to true will bypass this check, and simply map the pin name object, to the
+zephyr port device object and pin.
 ```
-extern void pinMode(PinName pin_name, PinMode mode);
+extern void pinMode(PinName pin_name, PinMode mode, bool bypass_pin_match = false);
 ```
 
 Set the MODER register for this pin name, 2 bits per pin(Input, Output, Alternate function, Analog

@@ -52,6 +52,9 @@
 
 PinName led_builtin_pn;
 
+const struct device *led_dev; 
+uint8_t led_dev_pin;
+
 void setup() {
   Serial.begin(115200);
   while (!Serial && millis() < 5000) {}
@@ -121,12 +124,20 @@ void setup() {
   Serial.print("): ");
   Serial.println(pinNameToStr(led_builtin_pn));
 
-  pinMode(led_builtin_pn, OUTPUT);
+  pinMode(led_builtin_pn, OUTPUT, true);
+  led_dev = mapPinToZephyrGPIODevice(LED_BUILTIN, &led_dev_pin); 
+  Serial.print("LED device: 0x");
+  Serial.print((uint32_t)led_dev, HEX);
+  Serial.print(" pin: ");
+  Serial.println(led_dev_pin);
+
+
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
-  digitalWriteFast(led_builtin_pn, !digitalReadFast(led_builtin_pn));
+  //digitalWriteFast(led_builtin_pn, !digitalReadFast(led_builtin_pn));
+  gpio_pin_toggle(led_dev, led_dev_pin);
   delay(500);
 
 }

@@ -74,6 +74,15 @@ struct gpio_stm32_config_head {
   uint32_t *base;
 };
 
+// Generate a list of the stm32 GPIO port zephyr device objects.
+#define ADD_GPIO_NODE(node_id) DEVICE_DT_GET(node_id),
+
+const struct device *stm32_gpio_ports[] = {
+    DT_FOREACH_STATUS_OKAY(st_stm32_gpio, ADD_GPIO_NODE)
+};
+
+#define COUNT_STM32_GPIO_PORTS (sizeof(stm32_gpio_ports) / sizeof(stm32_gpio_ports[0]))
+
 
 uint8_t mapPinNameToPin(PinName pin_name) {
   uint8_t pin_on_port = pin_name & 0xf;
@@ -109,60 +118,57 @@ PinName mapPinToPinName(uint8_t pin) {
   return (PinName)PX_INVALID;
 }
 
-void pinMode(PinName pin_name, PinMode mode) {
-  // I am going to try to rely on Zephyr to do this, as to not have to replicate a lot of the zephyr code.
-  // first main hack, See if I can find the GPIO port object that has points to the right GPIO object.
-  pin_size_t pin_num = 0xff;
+const struct device *mapPinToZephyrGPIODevice(uint8_t pin, uint8_t *port_pin) {
+  if (pin >= NUM_OF_DIGITAL_PINS)
+  if (port_pin) return nullptr;
+
+  if(port_pin) *port_pin = arduino_pins[pin].pin;
+
+  return arduino_pins[pin].port;
+}
+
+
+extern const struct device *mapPinNameToZephyrGPIODevice(PinName pin_name, uint8_t *port_pin) {
+  if (pin_name >= PX_COUNT) return nullptr;
+
+  if (port_pin) *port_pin = pin_name & 0xf;
+
+  return stm32_gpio_ports[pin_name >> 4];
+}
+
+
+
+void pinMode(PinName pin_name, PinMode mode, bool bypass_pin_match) {
+  if (pin_name >= PX_COUNT) return;
+
+  const struct device *port_device = stm32_gpio_ports[pin_name >> 4];
   uint8_t pin_on_port = pin_name & 0xf;
-  GPIO_TypeDef  * const port = port_table[pin_name >> 4];
-  uint8_t pin_match_port = 0xff;
 
-  for (pin_num = 0; pin_num < NUM_OF_DIGITAL_PINS; pin_num++) {
-      const struct gpio_stm32_config_head *cfg = (gpio_stm32_config_head*)arduino_pins[pin_num].port->config;  
-      GPIO_TypeDef *portX = (GPIO_TypeDef *)cfg->base;
+  // if we are not told to bypass the pin matching
+  if (!bypass_pin_match) {
+    for (uint8_t pin_num = 0; pin_num < NUM_OF_DIGITAL_PINS; pin_num++) {
+      if ((arduino_pins[pin_num].port == port_device) && 
+          (arduino_pins[pin_num].pin == pin_on_port)) {
 
-      if (portX == port) {
-        pin_match_port = pin_num;
-        // Found an exact match so simply return it.
-        if (arduino_pins[pin_num].pin == pin_on_port) {
-          //Serial.print("pinMode(");
-          //Serial.print(pin_name, HEX);
-          //Serial.print(") mapped to pin: ");
-          //Serial.println(pin_num);
           pinMode(pin_num, mode);
           return;
-        }
-
       }
-
     }
-
-  if (pin_match_port == 0xff) {
-    //Serial.print("pinMode(");
-    //Serial.print(pin_name, HEX);
-    //Serial.println(") Failed - did not find port");
-    return; 
   }
-  // lets try to re
 
- //Serial.print("pinMode(");
- //Serial.print(pin_name, HEX);
- //Serial.print(") using port for pin: ");
- //Serial.println(pin_match_port);
   if (mode == INPUT) { // input mode
-    gpio_pin_configure(arduino_pins[pin_match_port].port, pin_on_port, 
+    gpio_pin_configure(port_device, pin_on_port, 
                        GPIO_INPUT | GPIO_ACTIVE_HIGH);
   } else if (mode == INPUT_PULLUP) { // input with internal pull-up
-    gpio_pin_configure(arduino_pins[pin_match_port].port, pin_on_port, 
+    gpio_pin_configure(port_device, pin_on_port, 
                        GPIO_INPUT | GPIO_PULL_UP | GPIO_ACTIVE_HIGH);
   } else if (mode == INPUT_PULLDOWN) { // input with internal pull-down
-    gpio_pin_configure(arduino_pins[pin_match_port].port, pin_on_port, 
+    gpio_pin_configure(port_device, pin_on_port, 
                        GPIO_INPUT | GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH);
   } else if (mode == OUTPUT) { // output mode
-    gpio_pin_configure(arduino_pins[pin_match_port].port, pin_on_port, 
+    gpio_pin_configure(port_device, pin_on_port, 
                        GPIO_OUTPUT_LOW | GPIO_ACTIVE_HIGH);
   }
-
 }
 
 void digitalWriteFast(uint8_t pin, PinStatus val) {

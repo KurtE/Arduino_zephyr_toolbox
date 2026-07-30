@@ -53,12 +53,18 @@ typedef enum {
 } PinName;
 
 
-
-extern void pinMode(PinName pin_name, PinMode mode);
+// By default the pinMode code, sees if the pin is one that is actually in the pin table
+// if so it redirects to use the standard Arduino pinMode.
+extern void pinMode(PinName pin_name, PinMode mode, bool bypass_pin_match = false);
 
 extern uint8_t mapPinNameToPin(PinName pin_name);
 extern PinName mapPinToPinName(uint8_t pin);
-extern GPIO_TypeDef const *mapPinNameToPortAndPin(PinName pin_name, uint8_t *port_pin);
+extern GPIO_TypeDef const *mapPinNameToPortAndPin(PinName pin_name, uint8_t *port_pin=nullptr);
+
+// Map PinName to the underlying Zyphr GPIO Device object and optionally the pin on the port
+extern const struct device *mapPinToZephyrGPIODevice(uint8_t pin, uint8_t *port_pin = nullptr);
+extern const struct device *mapPinNameToZephyrGPIODevice(PinName pin_name, uint8_t *port_pin = nullptr);
+
 // quick and dirty digitalWriteFast
 
 // Sets the state of an IO pin
