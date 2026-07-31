@@ -77,25 +77,26 @@ struct gpio_stm32_config_head {
 // Generate a list of the stm32 GPIO port zephyr device objects.
 #define ADD_GPIO_NODE(node_id) DEVICE_DT_GET(node_id),
 
-const struct device *stm32_gpio_ports[] = {
+const struct device *zephyr_gpio_devices[] = {
     DT_FOREACH_STATUS_OKAY(st_stm32_gpio, ADD_GPIO_NODE)
 };
 
-#define COUNT_STM32_GPIO_PORTS (sizeof(stm32_gpio_ports) / sizeof(stm32_gpio_ports[0]))
+#define COUNT_ZEPHYR_GPIO_DEVICES (sizeof(zephyr_gpio_devices) / sizeof(zephyr_gpio_devices[0]))
 
 
 uint8_t mapPinNameToPin(PinName pin_name) {
+  const struct device *port_device = zephyr_gpio_devices[pin_name >> 4];
   uint8_t pin_on_port = pin_name & 0xf;
-  GPIO_TypeDef  * const port = port_table[pin_name >> 4];
-  for (uint8_t pin_num = 0; pin_num < NUM_OF_DIGITAL_PINS; pin_num++) {
-      const struct gpio_stm32_config_head *cfg = (gpio_stm32_config_head*)arduino_pins[pin_num].port->config;  
-      GPIO_TypeDef *portX = (GPIO_TypeDef *)cfg->base;
 
-      if ((portX == port) && (arduino_pins[pin_num].pin == pin_on_port)) {
-          return pin_num;
-      }
+  for (uint8_t pin_num = 0; pin_num < NUM_OF_DIGITAL_PINS; pin_num++) {
+    if ((arduino_pins[pin_num].port == port_device) && 
+        (arduino_pins[pin_num].pin == pin_on_port)) {
+
+        return pin_num;
     }
-    return 0xff;  // pin name not in Arduino Pin list
+  }
+
+  return 0xff;  // pin name not in Arduino Pin list
 }
 
 GPIO_TypeDef const *mapPinNameToPortAndPin(PinName pin_name, uint8_t *port_pin) {
@@ -106,12 +107,10 @@ GPIO_TypeDef const *mapPinNameToPortAndPin(PinName pin_name, uint8_t *port_pin) 
 }
 
 PinName mapPinToPinName(uint8_t pin) {
-  const struct gpio_stm32_config_head *cfg = (gpio_stm32_config_head*)arduino_pins[pin].port->config;  
-  GPIO_TypeDef *port = (GPIO_TypeDef *)cfg->base;
 
   // now find this port in our Port list;
-  for (uint8_t i = 0; i < (sizeof(port_table)/sizeof(port_table[0])); i++) {
-    if (port == port_table[i]) {
+  for (uint8_t i = 0; i < COUNT_ZEPHYR_GPIO_DEVICES; i++) {
+    if (arduino_pins[pin].port == zephyr_gpio_devices[i]) {
       return (PinName)((i << 4) | arduino_pins[pin].pin);
     }
   }
@@ -133,7 +132,7 @@ extern const struct device *mapPinNameToZephyrGPIODevice(PinName pin_name, uint8
 
   if (port_pin) *port_pin = pin_name & 0xf;
 
-  return stm32_gpio_ports[pin_name >> 4];
+  return zephyr_gpio_devices[pin_name >> 4];
 }
 
 
@@ -141,7 +140,7 @@ extern const struct device *mapPinNameToZephyrGPIODevice(PinName pin_name, uint8
 void pinMode(PinName pin_name, PinMode mode, bool bypass_pin_match) {
   if (pin_name >= PX_COUNT) return;
 
-  const struct device *port_device = stm32_gpio_ports[pin_name >> 4];
+  const struct device *port_device = zephyr_gpio_devices[pin_name >> 4];
   uint8_t pin_on_port = pin_name & 0xf;
 
   // if we are not told to bypass the pin matching
