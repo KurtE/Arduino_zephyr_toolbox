@@ -28,7 +28,15 @@
  */
 #ifndef _ARDUINO_ZEPHYR_TOOLBOX_H_
 #define _ARDUINO_ZEPHYR_TOOLBOX_H_
+#if !defined(ARDUINO_ARCH_ZEPHYR)
 
+#error "Only works on Zephyr"
+#endif
+
+#include "PinName_zephyr.h"
 #include "digitalWriteFast_zephyr.h"
+
+extern const struct device *zephyr_gpio_devices[];
+extern const uint8_t COUNT_ZEPHYR_GPIO_DEVICES;
 
 #endif

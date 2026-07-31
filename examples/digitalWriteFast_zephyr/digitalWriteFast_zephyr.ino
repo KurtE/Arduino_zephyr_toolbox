@@ -18,10 +18,11 @@
 
 void setup() {
   Serial.begin(115200);
-  Serial.println("\n\nTest");
   while (!Serial && millis() < 5000)
     ;
 
+  Serial.println("\n\nTest");
+  Serial.flush();
   //pinMode(PIN, OUTPUT);
   pinMode(PIN_NAME, OUTPUT);
   pinMode(PIN_MARKER, OUTPUT);
@@ -66,6 +67,23 @@ void do_digitalWriteFastName() {
   digitalWrite(PIN_MARKER, LOW);
   Serial.print("digitalWriteFast(name): ");
   Serial.println(delta_time, DEC);
+}
+
+void  do_zephyr_gpio_writes() {
+#if 0
+  digitalWrite(PIN_MARKER, HIGH);
+  uint8_t pin_on_port;
+  const struct device *dev = mapPinNameToZephyrGPIODevice(PIN_NAME, &pin_on_port);
+  uint32_t start_time = micros();
+  for (int i = 0; i < 1000; i++) {
+    gpio_pin_set(dev, pin_on_port, 1);
+    gpio_pin_set(dev, pin_on_port, 0);
+  }
+  uint32_t delta_time = micros() - start_time;
+  digitalWrite(PIN_MARKER, LOW);
+  Serial.print("digitalWriteFast(name): ");
+  Serial.println(delta_time, DEC);
+#endif
 }
 
 
@@ -113,6 +131,7 @@ void loop() {
   Serial.flush();
   do_digitalToggleFastName();
   Serial.flush();
+  do_zephyr_gpio_writes();
   Serial.println();
   delay(1000);
 }

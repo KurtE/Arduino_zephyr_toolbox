@@ -70,52 +70,7 @@ void setup() {
   }
 
   // Lets print a condensed GPIO Table
-  Serial.println("\n*** GPIO PORT/Pin To Arduino Pin numbers mapping ***");
-  Serial.println("\nGPIOX: 00 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15");
-  Serial.print("====== == == == == == == == == == == == == == == == ==");
-
-  for (uint8_t i = 0; i < PinName::PX_COUNT; i++) {
-    PinName pn = (PinName)i;
-    uint8_t pin_number = mapPinNameToPin(pn);
-    if ((i & 0xf) == 0) {
-      Serial.print("\nGPIO");
-      Serial.write('A' + (i >> 4));
-      Serial.print(":");
-    }
-    Serial.print(" ");
-    if (pin_number == 0xff) Serial.print("--");
-    else {
-      if (pin_number < 10) Serial.print(" ");
-      Serial.print(pin_number);
-    }
-  }
-  Serial.println();
-
-  Serial.println("\n*** Arduino Pin To Pin Name mapping table ***");
-  Serial.flush();
-  Serial.println("\nPin   0     1     2     3     4     5     6     7     8     9");
-  Serial.print    ("=== ===== ===== ===== ===== ===== ===== ===== ===== ===== =====");
-
-  // for the fun of it print out pin to PinName map as well
-  for (uint8_t i = 0; i < NUM_OF_DIGITAL_PINS; i++) {
-    if ((i % 10) == 0) {
-      Serial.print("\n");
-      if (i < 10) Serial.print("  ");
-      else if (i < 100) Serial.print(" ");
-      Serial.print(i);
-    }
-
-    PinName pn = mapPinToPinName(i);
-    if (pn == PX_INVALID) {
-      Serial.print(" -----");
-    } else {
-      const char *sz = pinNameToStr(pn);
-      Serial.print(" ");
-      Serial.print(sz);
-      if (strlen(sz) < 5) Serial.print(" ");
-    }
-  }
-  Serial.println("\n");
+  print_mapping_tables();
 
   // Lets try LED_BUILTIN
   led_builtin_pn = mapPinToPinName(LED_BUILTIN);
@@ -134,9 +89,77 @@ void setup() {
 
 }
 
+void print_mapping_tables() {
+  // Lets print a condensed GPIO Table
+  Serial.println("\n*** GPIO PORT/Pin To Arduino Pin numbers mapping ***");
+
+#if defined(STM32H7) || defined(STM32U5)
+  Serial.println("\nGPIOX: 00 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15");
+  Serial.print("====== == == == == == == == == == == == == == == == ==");
+#else
+  Serial.println("\nPORTX: 00 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15");
+  Serial.print("====== == == == == == == == == == == == == == == == ==");
+#endif
+
+  for (uint8_t i = 0; i < PinName::PX_COUNT; i++) {
+    PinName pn = (PinName)i;
+    uint8_t pin_number = mapPinNameToPin(pn);
+    if ((i & 0xf) == 0) {
+#if defined(STM32H7) || defined(STM32U5)
+      Serial.flush();
+      Serial.print("\nGPIO");
+      Serial.write('A' + (i >> 4));
+#else
+      Serial.print("\nPORT");
+      Serial.print((i >> 4), HEX);
+#endif
+      Serial.print(":");
+    }
+    Serial.print(" ");
+    if (pin_number == 0xff) Serial.print("--");
+    else {
+      if (pin_number < 10) Serial.print(" ");
+      Serial.print(pin_number);
+    }
+  }
+  Serial.println();
+
+  Serial.println("\n*** Arduino Pin To Pin Name mapping table ***");
+  Serial.flush();
+  Serial.println("\nPin   0     1     2     3     4     5     6     7     8     9");
+  Serial.print    ("=== ===== ===== ===== ===== ===== ===== ===== ===== ===== =====");
+  Serial.flush();
+  // for the fun of it print out pin to PinName map as well
+  for (uint8_t i = 0; i < NUM_OF_DIGITAL_PINS; i++) {
+    if ((i % 10) == 0) {
+      Serial.print("\n");
+      Serial.flush();
+      if (i < 10) Serial.print("  ");
+      else if (i < 100) Serial.print(" ");
+      Serial.print(i);
+    }
+
+    PinName pn = mapPinToPinName(i);
+    if (pn == PX_INVALID) {
+      Serial.print(" -----");
+    } else {
+      const char *sz = pinNameToStr(pn);
+      Serial.print(" ");
+      Serial.print(sz);
+      if (strlen(sz) < 5) Serial.print(" ");
+    }
+  }
+  Serial.println("\n");
+
+}
+
 void loop() {
   // put your main code here, to run repeatedly:
   //digitalWriteFast(led_builtin_pn, !digitalReadFast(led_builtin_pn));
+  if (Serial.available()) {
+    while (Serial.available()) Serial.read();
+    print_mapping_tables();
+  }
   gpio_pin_toggle(led_dev, led_dev_pin);
   delay(500);
 

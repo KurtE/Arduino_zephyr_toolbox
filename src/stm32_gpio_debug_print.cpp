@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include "digitalWriteFast_zephyr.h"
 
+#if defined(STM32H7) || defined(STM32U5)
 void print_gpio_regs(const char *name, GPIO_TypeDef *port) {
   //printk("GPIO%s(%p) %08X %08X %08x\n", name, port, port->MODER, port->AFR[0], port->AFR[1]);
   Serial.print("GPIO");
@@ -58,3 +59,4 @@ void print_all_gpio_regs() {
   #endif
 }
 
+#endif
