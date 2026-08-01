@@ -25,7 +25,7 @@
  *    OTHER DEALINGS IN THE SOFTWARE.
  */
 #include <Arduino.h>
-#include "digitalWriteFast_zephyr.h"
+#include "Arduino_zephyr_toolbox.h"
 #include <zephyr/drivers/gpio.h>
 
 #include "wiring_private.h"

@@ -34,9 +34,9 @@
 #endif
 
 #include "PinName_zephyr.h"
-#include "digitalWriteFast_zephyr.h"
-
 extern const struct device *zephyr_gpio_devices[];
 extern const uint8_t COUNT_ZEPHYR_GPIO_DEVICES;
+
+#include "digitalWriteFast_zephyr.h"
 
 #endif

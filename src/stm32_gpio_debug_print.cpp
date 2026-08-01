@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include "digitalWriteFast_zephyr.h"
+#include "Arduino_zephyr_toolbox.h"
 
 #if defined(STM32H7) || defined(STM32U5)
 void print_gpio_regs(const char *name, GPIO_TypeDef *port) {

@@ -63,29 +63,9 @@ static const char *pin_names[] = {
   // clang-format on
 };
 
-void digitalWriteFast(uint8_t pin, PinStatus val) {
-	// defaulting to do like Arduino code
-	gpio_pin_set_dt(&arduino_pins[pin], val);
-}
-
-// This version you takes in a pin name (PinName) like LED_RED
-void digitalWriteFast(PinName pin_name, PinStatus val) {
-  gpio_pin_set(zephyr_gpio_devices[pin_name >> 4], pin_name & 0xf, val);
-}
-
 
 
 // Toggles the state of an IO pin - pin number version
-
-void digitalToggleFast(uint8_t pin) {
-	// defaulting to do like Arduino code
- 	 gpio_pin_toggle_dt(&arduino_pins[pin]);
-}
-
-// Toggles the state of an IO pin - pin name version
-void digitalToggleFast(PinName pin_name) {
-  gpio_pin_toggle(zephyr_gpio_devices[pin_name >> 4], pin_name & 0xf);
-}
 
 
 // Reads the state of an IO pin - pin number version
