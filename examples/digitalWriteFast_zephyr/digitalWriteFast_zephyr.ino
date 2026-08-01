@@ -9,11 +9,11 @@
 #define PIN_MARKER 3
 #define PIN_NAME PB_3
 #else
-//Giga
 #define PIN 2
 #define PIN_MARKER 3
 #if defined (ARDUINO_PORTENTA_H7_M7)
 #define PIN_NAME PJ_11
+#elif defined(ARDUINO_GIGA)
 #define PIN_NAME PA_3
 #elif defined(ARDUINO_PORTENTA_C33)
 #define PIN_NAME P1_11
