@@ -75,6 +75,31 @@ inline void digitalWriteFast(PinName pin_name, PinStatus val) {
   else port->BSRR = (uint32_t)(mask << 16);
 }
 
+#elif defined(ARDUINO_PORTENTA_C33)
+extern R_PORT0_Type *renesas_gpio_port_table[];
+
+struct gpio_ra_config_head {
+  struct gpio_driver_config common;
+  uint8_t port_num;
+  R_PORT0_Type *port;
+};
+
+inline void digitalWriteFast(uint8_t pin, PinStatus val) {
+  const struct gpio_ra_config_head *config = (gpio_ra_config_head*)zephyr::arduino::arduino_pins[pin].port->config;
+  R_PORT0_Type *port = config->port;
+  uint16_t mask = 1 << zephyr::arduino::arduino_pins[pin].pin;
+
+  if (val) port->POSR = mask;
+  else port->PORR = mask;
+}
+
+inline void digitalWriteFast(PinName pin_name, PinStatus val) {
+  uint16_t mask = 1 << (pin_name & 0xf);
+  R_PORT0_Type *port = renesas_gpio_port_table[pin_name >> 4];
+  if (val) port->POSR = mask;
+  else port->PORR = mask;
+}
+
 #else
 
 inline void digitalWriteFast(uint8_t pin, PinStatus val) {
@@ -119,6 +144,24 @@ inline void digitalToggleFast(PinName pin_name) {
 
   if (portX->ODR & pin_mask) portX->BSRR = (uint32_t)(pin_mask << 16);
   else portX->BSRR = pin_mask;
+}
+
+#elif defined(ARDUINO_PORTENTA_C33)
+inline void digitalToggleFast(uint8_t pin) {
+  const struct gpio_ra_config_head *config = (gpio_ra_config_head*)zephyr::arduino::arduino_pins[pin].port->config;
+  R_PORT0_Type *port = config->port;
+  uint16_t mask = 1 << zephyr::arduino::arduino_pins[pin].pin;
+
+  if (port->PODR & mask) port->PORR = mask;
+  else port->POSR = mask;
+}
+
+inline void digitalToggleFast(PinName pin_name) {
+  uint16_t mask = 1 << (pin_name & 0xf);
+  R_PORT0_Type *port = renesas_gpio_port_table[pin_name >> 4];
+
+  if (port->PODR & mask) port->PORR = mask;
+  else port->POSR = mask;
 }
 
 #else

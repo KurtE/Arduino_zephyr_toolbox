@@ -63,6 +63,14 @@ static const char *pin_names[] = {
   // clang-format on
 };
 
+// Generate a list of the stm32 GPIO port zephyr device objects.
+#define ADD_GPIO_NODE_REG_ADDR(node_id) (R_PORT0_Type *)DT_REG_ADDR(node_id),
+
+R_PORT0_Type *renesas_gpio_port_table[] = {
+#if defined(ARDUINO_PORTENTA_C33)
+    DT_FOREACH_STATUS_OKAY(renesas_ra_gpio_ioport, ADD_GPIO_NODE_REG_ADDR)
+#endif
+};
 
 
 // Toggles the state of an IO pin - pin number version
@@ -76,7 +84,6 @@ PinStatus digitalReadFast(uint8_t pin) {
 // Reads the state of an IO pin - pin name version
 PinStatus digitalReadFast(PinName pin_name) {
 	return (gpio_pin_get(zephyr_gpio_devices[pin_name >> 4], pin_name & 0xf) == 1) ? HIGH : LOW;
-  uint16_t pin_mask = 1 << (pin_name & 0xf);
 }
 
 
