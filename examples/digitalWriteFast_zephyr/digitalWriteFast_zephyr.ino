@@ -145,6 +145,22 @@ void do_digitalToggleFastName() {
   Serial.println(delta_time, DEC);
 }
 
+void do_digital_gpio_toggle() {
+  digitalWrite(PIN_MARKER, HIGH);
+  uint8_t pin_on_port;
+  const struct device *dev = mapPinNameToZephyrGPIODevice(pin_name, &pin_on_port);
+  uint32_t start_time = micros();
+  for (int i = 0; i < 1000; i++) {
+    gpio_pin_toggle(dev, pin_on_port);
+    gpio_pin_toggle(dev, pin_on_port);
+  }
+  uint32_t delta_time = micros() - start_time;
+  digitalWrite(PIN_MARKER, LOW);
+  Serial.print("digitalToggleFast(GPIO_pin_toggle): ");
+  Serial.println(delta_time, DEC);
+}
+
+
 
 void loop() {
   if (Serial.available()) {
@@ -172,6 +188,8 @@ void loop() {
   do_digitalToggleFastName();
   Serial.flush();
   do_zephyr_gpio_writes();
+  Serial.flush();
+  do_digital_gpio_toggle();
   Serial.println();
   delay(1000);
 }

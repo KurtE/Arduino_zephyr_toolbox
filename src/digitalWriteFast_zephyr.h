@@ -46,6 +46,9 @@ extern const struct device *mapPinNameToZephyrGPIODevice(PinName pin_name, uint8
 
 // Sets the state of an IO pin
 // Two versions - this version you takes in a pin number as uint8_t type - uint8_t
+//=============================================================================
+// STM32 optimized functions (GIGA, Portenta H7, Nicla Vision)
+//=============================================================================
 #if defined(STM32H7) || defined(STM32U5)
 extern GPIO_TypeDef * const stm32_gpio_port_table[];
 
@@ -75,6 +78,29 @@ inline void digitalWriteFast(PinName pin_name, PinStatus val) {
   else port->BSRR = (uint32_t)(mask << 16);
 }
 
+
+inline void digitalToggleFast(uint8_t pin) {
+  const struct gpio_stm32_config_head *cfg = (gpio_stm32_config_head*)zephyr::arduino::arduino_pins[pin].port->config;  
+  GPIO_TypeDef *portX = (GPIO_TypeDef *)cfg->base;
+  uint16_t pin_mask = 1 << (zephyr::arduino::arduino_pins[pin].pin);
+
+  if (portX->ODR & pin_mask) portX->BSRR = (uint32_t)(pin_mask << 16);
+  else portX->BSRR = pin_mask;
+}
+
+// Toggles the state of an IO pin - pin name version
+inline void digitalToggleFast(PinName pin_name) {
+  uint16_t pin_mask = 1 << (pin_name & 0xf);
+  GPIO_TypeDef  * const portX = stm32_gpio_port_table[pin_name >> 4];
+
+  if (portX->ODR & pin_mask) portX->BSRR = (uint32_t)(pin_mask << 16);
+  else portX->BSRR = pin_mask;
+}
+
+
+//=============================================================================
+// Renesas optiomized functions: currently portenta C33
+//=============================================================================
 #elif defined(ARDUINO_PORTENTA_C33)
 extern R_PORT0_Type *renesas_gpio_port_table[];
 
@@ -100,53 +126,6 @@ inline void digitalWriteFast(PinName pin_name, PinStatus val) {
   else port->PORR = mask;
 }
 
-#else
-
-inline void digitalWriteFast(uint8_t pin, PinStatus val) {
-    // defaulting to do like Arduino code
-    gpio_pin_set_dt(&zephyr::arduino::arduino_pins[pin], val);
-}
-
-// This version you takes in a pin name (PinName) like LED_RED
-inline void digitalWriteFast(PinName pin_name, PinStatus val) {
-  gpio_pin_set(zephyr_gpio_devices[pin_name >> 4], pin_name & 0xf, val);
-}
-
-#endif
-
-
-inline void digitalWriteFast(uint8_t pin, int status) {
-    digitalWriteFast(pin, (PinStatus)status);
-};
-
-inline void digitalWriteFast(PinName pin_name, int status) {
-    digitalWriteFast(pin_name, (PinStatus)status);
-};
-
-
-
-// Toggles the state of an IO pin - pin number version
-
-#if defined(STM32H7) || defined(STM32U5)
-inline void digitalToggleFast(uint8_t pin) {
-  const struct gpio_stm32_config_head *cfg = (gpio_stm32_config_head*)zephyr::arduino::arduino_pins[pin].port->config;  
-  GPIO_TypeDef *portX = (GPIO_TypeDef *)cfg->base;
-  uint16_t pin_mask = 1 << (zephyr::arduino::arduino_pins[pin].pin);
-
-  if (portX->ODR & pin_mask) portX->BSRR = (uint32_t)(pin_mask << 16);
-  else portX->BSRR = pin_mask;
-}
-
-// Toggles the state of an IO pin - pin name version
-inline void digitalToggleFast(PinName pin_name) {
-  uint16_t pin_mask = 1 << (pin_name & 0xf);
-  GPIO_TypeDef  * const portX = stm32_gpio_port_table[pin_name >> 4];
-
-  if (portX->ODR & pin_mask) portX->BSRR = (uint32_t)(pin_mask << 16);
-  else portX->BSRR = pin_mask;
-}
-
-#elif defined(ARDUINO_PORTENTA_C33)
 inline void digitalToggleFast(uint8_t pin) {
   const struct gpio_ra_config_head *config = (gpio_ra_config_head*)zephyr::arduino::arduino_pins[pin].port->config;
   R_PORT0_Type *port = config->port;
@@ -164,7 +143,23 @@ inline void digitalToggleFast(PinName pin_name) {
   else port->POSR = mask;
 }
 
+
+//=============================================================================
+// default less optimized functions.
+//=============================================================================
 #else
+
+inline void digitalWriteFast(uint8_t pin, PinStatus val) {
+    // defaulting to do like Arduino code
+    gpio_pin_set_dt(&zephyr::arduino::arduino_pins[pin], val);
+}
+
+// This version you takes in a pin name (PinName) like LED_RED
+inline void digitalWriteFast(PinName pin_name, PinStatus val) {
+  gpio_pin_set(zephyr_gpio_devices[pin_name >> 4], pin_name & 0xf, val);
+}
+
+
 inline void digitalToggleFast(uint8_t pin) {
     // defaulting to do like Arduino code
      gpio_pin_toggle_dt(&zephyr::arduino::arduino_pins[pin]);
@@ -174,7 +169,21 @@ inline void digitalToggleFast(uint8_t pin) {
 inline void digitalToggleFast(PinName pin_name) {
   gpio_pin_toggle(zephyr_gpio_devices[pin_name >> 4], pin_name & 0xf);
 }
+
 #endif
+
+
+//=============================================================================
+// For all boards
+//=============================================================================
+inline void digitalWriteFast(uint8_t pin, int status) {
+    digitalWriteFast(pin, (PinStatus)status);
+};
+
+inline void digitalWriteFast(PinName pin_name, int status) {
+    digitalWriteFast(pin_name, (PinStatus)status);
+};
+
 
 
 // Reads the state of an IO pin - pin number version
