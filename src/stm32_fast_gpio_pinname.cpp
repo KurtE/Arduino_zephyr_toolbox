@@ -34,11 +34,12 @@
 #include "wiring_private.h"
 using namespace zephyr::arduino;
 
-GPIO_TypeDef * const stm32_gpio_port_table[] = { GPIOA, GPIOB, GPIOC, GPIOD, GPIOE, GPIOF, GPIOG, GPIOH, GPIOI
-#ifndef STM32U5
-    ,GPIOJ, GPIOK 
-#endif    
+// Generate a list of pointers to the GPIO register structures, like GPIOA, ...
+#define ADD_GPIO_NODE_REG_ADDR(node_id) (GPIO_TypeDef *)DT_REG_ADDR(node_id),
+GPIO_TypeDef * const stm32_gpio_port_table[] = {
+    DT_FOREACH_STATUS_OKAY(st_stm32_gpio, ADD_GPIO_NODE_REG_ADDR)
 };
+
 
 static const char *pin_names[] = {
   // clang-format off
