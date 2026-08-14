@@ -1,9 +1,10 @@
-# Overview and Warning: 
+# Overview and Warning:
 
 This Arduino library is an experiment and a WIP, which may never go anywhere.
 
 The idea in this library is to allow me to have access to all of the GPIO pins
-on the Arduino Zephyr STM32 based boards, such as Giga, Portenta H7, UNO Q
+on the Arduino Zephyr STM32 based boards, such as GIGA R1 WiFi, Portenta H7,
+and UNO Q.
 
 I have introduced pin names for all possible GPIO pins, and then
 added digital functions such as digitalWriteFast, digitalReadFast,
@@ -19,18 +20,18 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-This library uses concepts and relies on the ArduinoCore-zephyr as well as 
+This library uses concepts and relies on the ArduinoCore-zephyr as well as
 Zephyr.
 
 Warning: this document is still WIP, and many of the features are likely
 to change and be reorganized.
 
-#Current Features:
+# Current Features:
 
 ## PinName:
 
 There is currently an Enum defined for most of the pins on an STM32 based
-board.  
+board.
 
 ```
 typedef enum {
@@ -42,7 +43,7 @@ typedef enum {
     PF_0=0x50, PF_1, PF_2, PF_3, PF_4, PF_5, PF_6, PF_7, PF_8, PF_9, PF_10, PF_11, PF_12, PF_13, PF_14, PF_15,
     PG_0=0x60, PG_1, PG_2, PG_3, PG_4, PG_5, PG_6, PG_7, PG_8, PG_9, PG_10, PG_11, PG_12, PG_13, PG_14, PG_15,
     PH_0=0x70, PH_1, PH_2, PH_3, PH_4, PH_5, PH_6, PH_7, PH_8, PH_9, PH_10, PH_11, PH_12, PH_13, PH_14, PH_15,
-    PI_0=0x80, PI_1, PI_2, PI_3, PI_4, PI_5, PI_6, PI_7, 
+    PI_0=0x80, PI_1, PI_2, PI_3, PI_4, PI_5, PI_6, PI_7,
 #if !defined(STM32U5)  // UNO_Q does not have the following pins
     PI_8, PI_9, PI_10, PI_11, PI_12, PI_13, PI_14, PI_15,
     PJ_0=0x90, PJ_1, PJ_2, PJ_3, PJ_4, PJ_5, PJ_6, PJ_7, PJ_8, PJ_9, PJ_10, PJ_11, PJ_12, PJ_13, PJ_14, PJ_15,
@@ -58,17 +59,17 @@ https://docs.arduino.cc/static/8ef771ee25fbb0fd245598df70429cbf/ASX00055-softwar
 
 Other documents such as the Portenta Full pinout:
 https://docs.arduino.cc/resources/pinouts/ABX00042-full-pinout.pdf
-Use a different format instead of: PA_0 they use PA0
+Use a different format.  Instead of PA_0, they use PA0
 
 ### Mapping functions
 
-The header file digitalWriteFast_zephyr.h defines some functions that 
+The header file digitalWriteFast_zephyr.h defines some functions that
 allow you to map between the two:
 
 ```
 extern uint8_t mapPinNameToPin(PinName pin_name);
 ```
-Maps a pin name to the correspoinding pin name.
+Maps a pin name to the corresponding pin name.
 For example, on Portenta H7: mapPinNameToPin(PJ_11) will return pin 2.
 
 likewise:
@@ -81,14 +82,14 @@ The helper function:
 ```
 extern GPIO_TypeDef const *mapPinNameToPortAndPin(PinName pin_name, uint8_t *port_pin);
 ```
-Maps a pin name to a pointer to the GPIO registers structure, and return which pin in that GPIO register is for that pin.
+Maps a pin name to a pointer to the GPIO registers structure, and returns which pin in that GPIO register is for that pin.
 So for example one could do:
 ```
 uint8_t port_pin;
 GPIO_TypeDef const *port = mapPinNameToPortAndPin(PJ_11, &port_pin);
 port->BSRR = (1 << port_pin);
 ```
-Will set that pin to the on state.
+This will set that pin to the on state.
 
 Map pin number or pin name to the underlying Zephyr GPIO Port object and optionally pin number on port:
 ```
@@ -97,23 +98,23 @@ extern const struct device *mapPinNameToZephyrGPIODevice(PinName pin_name, uint8
 ```
 Which allows you to do things like:
 ```
-const struct device *led_dev; 
+const struct device *led_dev;
 uint8_t led_dev_pin;
 ...
-  led_dev = mapPinToZephyrGPIODevice(LED_BUILTIN, &led_dev_pin); 
+  led_dev = mapPinToZephyrGPIODevice(LED_BUILTIN, &led_dev_pin);
 ...
   gpio_pin_toggle(led_dev, led_dev_pin);
 ```
 
 
-The function: 
+The function:
 ```
 extern const char *pinNameToStr(PinName pin_name);
 inline const char *pinNameToStr(int pin_name) {
     return pinNameToStr((PinName)pin_name);
 }
 ```
-Will convert the pin name value from the enum and return a const char * 
+Will convert the pin name value from the enum and return a const char *
 for the actual name.
 
 
@@ -123,18 +124,17 @@ To set up a pin to be in GPIO modes like: INPUT, INPUT_PULLUP, INPUT_PULLDOWN, O
 By default, it will check to see if the PinName maps to an existing GPIO pin and
 then call the standard Arduino pinMode(pin, PinMode).  There is an optional parameter
 that if set to true will bypass this check, and simply map the pin name object, to the
-zephyr port device object and pin.
+Zephyr port device object and pin.
 ```
 extern void pinMode(PinName pin_name, PinMode mode, bool bypass_pin_match = false);
 ```
 
-Set the MODER register for this pin name, 2 bits per pin(Input, Output, Alternate function, Analog
-	)
+Set the MODER register for this pin name, 2 bits per pin (Input, Output, Alternate function, Analog)
 ```
 extern void pinSetModer(uint8_t pin, uint8_t pin_mode);
 ```
 
-Set the Alternate function value for a Pin Name, 4 bits per pin.  The meaning for what the values are changes for each pin.  
+Set the Alternate function value for a Pin Name, 4 bits per pin.  The meaning for what the values are changes for each pin.
 ```
 extern void pinSetAFR(uint8_t pin, uint8_t af);
 ```
@@ -177,7 +177,7 @@ To print debug information for an STM32 GPIO register structure.
 extern void print_gpio_regs(const char *name, GPIO_TypeDef *port);
 ```
 
-To Print out these registers for all of the GPIO registers structures on the
+To print out these registers for all of the GPIO registers structures on the
 STM32 board.
 ```
 extern void print_all_gpio_regs();
@@ -198,13 +198,13 @@ GPIOJ 7F000D57 : OAAAIIIIIIAOOOOA 0 0 8FD2 8012 555000 : ----UUUUUU------
 GPIOK FFFFDFF3 : AAAAAAAAAOAAAAIA 0 0 42 40 4 : --------------U-
 ```
 
-Break down of the different values printed above, for example GPIOA:
+Breakdown of the different values printed above, for example GPIOA:
 
 **ModeR** = 0x800088A8 the FIIIIIIIFIFIFFFI is for the 16 pins
 on GPIOA, One char per I=Input, F=Function, O=Output, A=Analog
 
 **AFRL**  (Low 8 GPIO pins) = B0A0ABB0 one nibble per pin so PA_1 is 0xB which looking at
-my excel document appears to be an Ethernet function.
+my Excel document appears to be an Ethernet function.
 
 **AFRH**  (High 8 GPIO pins) = B0000000 like AFRL
 
@@ -212,21 +212,21 @@ my excel document appears to be an Ethernet function.
 
 **ODR** = 0x0 - Output Data register
 
-**PUPDR** (Pull up/Down register) = 55551101 : UUUUUUUU-U-U---U 
+**PUPDR** (Pull up/Down register) = 55551101 : UUUUUUUU-U-U---U
 First part is the actual hex value, The second part is decoded per pin,
-where U is UP, D is Down - is not set.
+where U is UP, D is Down, - is not set.
 
 ## Analog Write with Frequency
 
 This adds the ability for the Arduino Zephyr user to be able to set the PWM
-frequency for each of the different PWM pins. 
+frequency for each of the different PWM pins.
 
 Currently this uses a different header file wiring_analog_extended.h as the
 functionally, that is in the Pull request:
 https://github.com/arduino/ArduinoCore-zephyr/pull/493
 
 
-I pre-appended a X to the names of the different functions.
+I prepended a X to the names of the different functions.
 
 ```
 void XanalogWriteFrequency(pin_size_t pin, float freq);
@@ -239,8 +239,8 @@ void XanalogWrite(pin_size_t pinNumber, int value);
 
 **digitalWriteFast_zephyr**: Compares the speed of digital Writes using different methods: digitalWrite, digitalWriteFast(pin), digitalWriteFast(pin_name)
 
-**print_pin_table**: Prints out the conversion of pin number to pin name, three different ways:  First way is Pin Name, pin which I use extract and use in excel document to map tables extracted from Arduino documents.  Second and third part are condensed tables.
-This is for the current Portenta H7
+**print_pin_table**: Prints out the conversion of pin number to pin name, three different ways:  First way is Pin Name, pin which I use in an Excel document to map tables extracted from Arduino documents.  Second and third part are condensed tables.
+This is for the current Portenta H7:
 ```
 *** GPIO PORT/Pin To Arduino Pin numbers mapping ***
 
@@ -262,24 +262,24 @@ GPIOK: --  1 -- -- -- 23 24 25
 
 Pin   0     1     2     3     4     5     6     7     8     9
 === ===== ===== ===== ===== ===== ===== ===== ===== ===== =====
-  0 PH_15 PK_1  PJ_11 PG_7  PC_7  PC_6  PA_8  PI_0  PC_3  PI_1 
+  0 PH_15 PK_1  PJ_11 PG_7  PC_7  PC_6  PA_8  PI_0  PC_3  PI_1
  10 PC_2  PH_8  PH_7  PA_10 PA_9  ----- ----- ----- ----- -----
  20 ----- PA_4  PA_6  PK_5  PK_6  PK_7  PI_12
 ```
 
-**zephyr_analogWrite_change_frequency**: Example setting the Analog Write frequency one pin.  Which I verified the
+**zephyr_analogWrite_change_frequency**: Example setting the Analog Write frequency on a pin.  I verified the
 speed using Logic Analyzer
 
 **zephyr_pinname_HiLowTest**: This is an example sketch that I use to ring out boards, to see what pin is what.
 In this case, it uses the Pin names to manipulate the pins.  It runs in two modes which toggle by entering anything
-in the Serial monitor: Starts off by setting all pins to INPUT_PULLUP and then scans all the pins, to see which ones
+in the Serial Monitor: Starts off by setting all pins to INPUT_PULLUP and then scans all the pins, to see which ones
 change values and prints those pins out.  It prints out the Pin Name and if there is an Arduino pin number assigned to
-it, it prints that out as well in ().  Note: this sketch has some pin exclude tables in it for some of the boards, 
+it, it prints that out as well in ().  Note: this sketch has some pin exclude tables in it for some of the boards,
 as for example you don't want to set the pins associated with SDRAM and the like to some random state...
 
 # Reminder
 
-Again this is an experimental library that will probably always be a Work(Play) In Progress.  Some pieces hopefully
+Again this is an experimental library that will probably always be a Work(Play) In Progress.  Some pieces may
 will disappear as hopefully some features will make it into the main ArduinoCore-zephyr functionality.
 
 I hope some of this is useful but again Use at your own risk!
