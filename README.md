@@ -1,4 +1,4 @@
-# Overview and Warning: 
+# Overview and Warning:
 
 This Arduino library is an experiment and a WIP, which may never go anywhere.
 
@@ -19,7 +19,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-This library uses concepts and relies on the ArduinoCore-zephyr as well as 
+This library uses concepts and relies on the ArduinoCore-zephyr as well as
 Zephyr.
 
 Warning: this document is still WIP, and many of the features are likely
@@ -30,7 +30,7 @@ to change and be reorganized.
 ## PinName:
 
 There is currently an Enum defined for most of the pins on an STM32 based
-board.  
+board.
 
 ```
 typedef enum {
@@ -42,7 +42,7 @@ typedef enum {
     PF_0=0x50, PF_1, PF_2, PF_3, PF_4, PF_5, PF_6, PF_7, PF_8, PF_9, PF_10, PF_11, PF_12, PF_13, PF_14, PF_15,
     PG_0=0x60, PG_1, PG_2, PG_3, PG_4, PG_5, PG_6, PG_7, PG_8, PG_9, PG_10, PG_11, PG_12, PG_13, PG_14, PG_15,
     PH_0=0x70, PH_1, PH_2, PH_3, PH_4, PH_5, PH_6, PH_7, PH_8, PH_9, PH_10, PH_11, PH_12, PH_13, PH_14, PH_15,
-    PI_0=0x80, PI_1, PI_2, PI_3, PI_4, PI_5, PI_6, PI_7, 
+    PI_0=0x80, PI_1, PI_2, PI_3, PI_4, PI_5, PI_6, PI_7,
 #if !defined(STM32U5)  // UNO_Q does not have the following pins
     PI_8, PI_9, PI_10, PI_11, PI_12, PI_13, PI_14, PI_15,
     PJ_0=0x90, PJ_1, PJ_2, PJ_3, PJ_4, PJ_5, PJ_6, PJ_7, PJ_8, PJ_9, PJ_10, PJ_11, PJ_12, PJ_13, PJ_14, PJ_15,
@@ -62,7 +62,7 @@ Use a different format instead of: PA_0 they use PA0
 
 ### Mapping functions
 
-The header file digitalWriteFast_zephyr.h defines some functions that 
+The header file digitalWriteFast_zephyr.h defines some functions that
 allow you to map between the two:
 
 ```
@@ -97,23 +97,23 @@ extern const struct device *mapPinNameToZephyrGPIODevice(PinName pin_name, uint8
 ```
 Which allows you to do things like:
 ```
-const struct device *led_dev; 
+const struct device *led_dev;
 uint8_t led_dev_pin;
 ...
-  led_dev = mapPinToZephyrGPIODevice(LED_BUILTIN, &led_dev_pin); 
+  led_dev = mapPinToZephyrGPIODevice(LED_BUILTIN, &led_dev_pin);
 ...
   gpio_pin_toggle(led_dev, led_dev_pin);
 ```
 
 
-The function: 
+The function:
 ```
 extern const char *pinNameToStr(PinName pin_name);
 inline const char *pinNameToStr(int pin_name) {
     return pinNameToStr((PinName)pin_name);
 }
 ```
-Will convert the pin name value from the enum and return a const char * 
+Will convert the pin name value from the enum and return a const char *
 for the actual name.
 
 
@@ -134,7 +134,7 @@ Set the MODER register for this pin name, 2 bits per pin(Input, Output, Alternat
 extern void pinSetModer(uint8_t pin, uint8_t pin_mode);
 ```
 
-Set the Alternate function value for a Pin Name, 4 bits per pin.  The meaning for what the values are changes for each pin.  
+Set the Alternate function value for a Pin Name, 4 bits per pin.  The meaning for what the values are changes for each pin.
 ```
 extern void pinSetAFR(uint8_t pin, uint8_t af);
 ```
@@ -212,14 +212,14 @@ my excel document appears to be an Ethernet function.
 
 **ODR** = 0x0 - Output Data register
 
-**PUPDR** (Pull up/Down register) = 55551101 : UUUUUUUU-U-U---U 
+**PUPDR** (Pull up/Down register) = 55551101 : UUUUUUUU-U-U---U
 First part is the actual hex value, The second part is decoded per pin,
 where U is UP, D is Down - is not set.
 
 ## Analog Write with Frequency
 
 This adds the ability for the Arduino Zephyr user to be able to set the PWM
-frequency for each of the different PWM pins. 
+frequency for each of the different PWM pins.
 
 Currently this uses a different header file wiring_analog_extended.h as the
 functionally, that is in the Pull request:
@@ -262,7 +262,7 @@ GPIOK: --  1 -- -- -- 23 24 25
 
 Pin   0     1     2     3     4     5     6     7     8     9
 === ===== ===== ===== ===== ===== ===== ===== ===== ===== =====
-  0 PH_15 PK_1  PJ_11 PG_7  PC_7  PC_6  PA_8  PI_0  PC_3  PI_1 
+  0 PH_15 PK_1  PJ_11 PG_7  PC_7  PC_6  PA_8  PI_0  PC_3  PI_1
  10 PC_2  PH_8  PH_7  PA_10 PA_9  ----- ----- ----- ----- -----
  20 ----- PA_4  PA_6  PK_5  PK_6  PK_7  PI_12
 ```
@@ -274,7 +274,7 @@ speed using Logic Analyzer
 In this case, it uses the Pin names to manipulate the pins.  It runs in two modes which toggle by entering anything
 in the Serial monitor: Starts off by setting all pins to INPUT_PULLUP and then scans all the pins, to see which ones
 change values and prints those pins out.  It prints out the Pin Name and if there is an Arduino pin number assigned to
-it, it prints that out as well in ().  Note: this sketch has some pin exclude tables in it for some of the boards, 
+it, it prints that out as well in ().  Note: this sketch has some pin exclude tables in it for some of the boards,
 as for example you don't want to set the pins associated with SDRAM and the like to some random state...
 
 # Reminder
