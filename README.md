@@ -3,7 +3,8 @@
 This Arduino library is an experiment and a WIP, which may never go anywhere.
 
 The idea in this library is to allow me to have access to all of the GPIO pins
-on the Arduino Zephyr STM32 based boards, such as Giga, Portenta H7, UNO Q
+on the Arduino Zephyr STM32 based boards, such as GIGA R1 WiFi, Portenta H7,
+and UNO Q.
 
 I have introduced pin names for all possible GPIO pins, and then
 added digital functions such as digitalWriteFast, digitalReadFast,
@@ -58,7 +59,7 @@ https://docs.arduino.cc/static/8ef771ee25fbb0fd245598df70429cbf/ASX00055-softwar
 
 Other documents such as the Portenta Full pinout:
 https://docs.arduino.cc/resources/pinouts/ABX00042-full-pinout.pdf
-Use a different format instead of: PA_0 they use PA0
+Use a different format.  Instead of PA_0, they use PA0
 
 ### Mapping functions
 
@@ -68,7 +69,7 @@ allow you to map between the two:
 ```
 extern uint8_t mapPinNameToPin(PinName pin_name);
 ```
-Maps a pin name to the correspoinding pin name.
+Maps a pin name to the corresponding pin name.
 For example, on Portenta H7: mapPinNameToPin(PJ_11) will return pin 2.
 
 likewise:
@@ -81,14 +82,14 @@ The helper function:
 ```
 extern GPIO_TypeDef const *mapPinNameToPortAndPin(PinName pin_name, uint8_t *port_pin);
 ```
-Maps a pin name to a pointer to the GPIO registers structure, and return which pin in that GPIO register is for that pin.
+Maps a pin name to a pointer to the GPIO registers structure, and returns which pin in that GPIO register is for that pin.
 So for example one could do:
 ```
 uint8_t port_pin;
 GPIO_TypeDef const *port = mapPinNameToPortAndPin(PJ_11, &port_pin);
 port->BSRR = (1 << port_pin);
 ```
-Will set that pin to the on state.
+This will set that pin to the on state.
 
 Map pin number or pin name to the underlying Zephyr GPIO Port object and optionally pin number on port:
 ```
@@ -123,13 +124,12 @@ To set up a pin to be in GPIO modes like: INPUT, INPUT_PULLUP, INPUT_PULLDOWN, O
 By default, it will check to see if the PinName maps to an existing GPIO pin and
 then call the standard Arduino pinMode(pin, PinMode).  There is an optional parameter
 that if set to true will bypass this check, and simply map the pin name object, to the
-zephyr port device object and pin.
+Zephyr port device object and pin.
 ```
 extern void pinMode(PinName pin_name, PinMode mode, bool bypass_pin_match = false);
 ```
 
-Set the MODER register for this pin name, 2 bits per pin(Input, Output, Alternate function, Analog
-	)
+Set the MODER register for this pin name, 2 bits per pin (Input, Output, Alternate function, Analog)
 ```
 extern void pinSetModer(uint8_t pin, uint8_t pin_mode);
 ```
@@ -177,7 +177,7 @@ To print debug information for an STM32 GPIO register structure.
 extern void print_gpio_regs(const char *name, GPIO_TypeDef *port);
 ```
 
-To Print out these registers for all of the GPIO registers structures on the
+To print out these registers for all of the GPIO registers structures on the
 STM32 board.
 ```
 extern void print_all_gpio_regs();
@@ -198,13 +198,13 @@ GPIOJ 7F000D57 : OAAAIIIIIIAOOOOA 0 0 8FD2 8012 555000 : ----UUUUUU------
 GPIOK FFFFDFF3 : AAAAAAAAAOAAAAIA 0 0 42 40 4 : --------------U-
 ```
 
-Break down of the different values printed above, for example GPIOA:
+Breakdown of the different values printed above, for example GPIOA:
 
 **ModeR** = 0x800088A8 the FIIIIIIIFIFIFFFI is for the 16 pins
 on GPIOA, One char per I=Input, F=Function, O=Output, A=Analog
 
 **AFRL**  (Low 8 GPIO pins) = B0A0ABB0 one nibble per pin so PA_1 is 0xB which looking at
-my excel document appears to be an Ethernet function.
+my Excel document appears to be an Ethernet function.
 
 **AFRH**  (High 8 GPIO pins) = B0000000 like AFRL
 
@@ -214,7 +214,7 @@ my excel document appears to be an Ethernet function.
 
 **PUPDR** (Pull up/Down register) = 55551101 : UUUUUUUU-U-U---U
 First part is the actual hex value, The second part is decoded per pin,
-where U is UP, D is Down - is not set.
+where U is UP, D is Down, - is not set.
 
 ## Analog Write with Frequency
 
@@ -226,7 +226,7 @@ functionally, that is in the Pull request:
 https://github.com/arduino/ArduinoCore-zephyr/pull/493
 
 
-I pre-appended a X to the names of the different functions.
+I prepended a X to the names of the different functions.
 
 ```
 void XanalogWriteFrequency(pin_size_t pin, float freq);
@@ -239,8 +239,8 @@ void XanalogWrite(pin_size_t pinNumber, int value);
 
 **digitalWriteFast_zephyr**: Compares the speed of digital Writes using different methods: digitalWrite, digitalWriteFast(pin), digitalWriteFast(pin_name)
 
-**print_pin_table**: Prints out the conversion of pin number to pin name, three different ways:  First way is Pin Name, pin which I use extract and use in excel document to map tables extracted from Arduino documents.  Second and third part are condensed tables.
-This is for the current Portenta H7
+**print_pin_table**: Prints out the conversion of pin number to pin name, three different ways:  First way is Pin Name, pin which I use in an Excel document to map tables extracted from Arduino documents.  Second and third part are condensed tables.
+This is for the current Portenta H7:
 ```
 *** GPIO PORT/Pin To Arduino Pin numbers mapping ***
 
@@ -267,19 +267,19 @@ Pin   0     1     2     3     4     5     6     7     8     9
  20 ----- PA_4  PA_6  PK_5  PK_6  PK_7  PI_12
 ```
 
-**zephyr_analogWrite_change_frequency**: Example setting the Analog Write frequency one pin.  Which I verified the
+**zephyr_analogWrite_change_frequency**: Example setting the Analog Write frequency on a pin.  I verified the
 speed using Logic Analyzer
 
 **zephyr_pinname_HiLowTest**: This is an example sketch that I use to ring out boards, to see what pin is what.
 In this case, it uses the Pin names to manipulate the pins.  It runs in two modes which toggle by entering anything
-in the Serial monitor: Starts off by setting all pins to INPUT_PULLUP and then scans all the pins, to see which ones
+in the Serial Monitor: Starts off by setting all pins to INPUT_PULLUP and then scans all the pins, to see which ones
 change values and prints those pins out.  It prints out the Pin Name and if there is an Arduino pin number assigned to
 it, it prints that out as well in ().  Note: this sketch has some pin exclude tables in it for some of the boards,
 as for example you don't want to set the pins associated with SDRAM and the like to some random state...
 
 # Reminder
 
-Again this is an experimental library that will probably always be a Work(Play) In Progress.  Some pieces hopefully
+Again this is an experimental library that will probably always be a Work(Play) In Progress.  Some pieces may
 will disappear as hopefully some features will make it into the main ArduinoCore-zephyr functionality.
 
 I hope some of this is useful but again Use at your own risk!
