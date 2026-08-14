@@ -25,7 +25,7 @@ Zephyr.
 Warning: this document is still WIP, and many of the features are likely
 to change and be reorganized.
 
-#Current Features:
+# Current Features:
 
 ## PinName:
 
