@@ -52,7 +52,7 @@ size_t pwm_pin_index(pin_size_t pinNumber) {
   return (size_t)-1;
 }
 
-uint32_t map64(uint32_t x, uint32_t in_min, uint32_t in_max, uint32_t out_min, uint32_t out_max) {
+static uint32_t map64(uint32_t x, uint32_t in_min, uint32_t in_max, uint32_t out_min, uint32_t out_max)  {
   return ((uint64_t)(x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min);
 }
 
